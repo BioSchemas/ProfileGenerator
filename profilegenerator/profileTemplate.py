@@ -1,3 +1,20 @@
+#!/usr/bin/env python
+
+# SPDX-License-Identifer: MIT
+# Copyright 2020 Heriot-Watt University, UK
+# Copyright 2020 The University of Manchester, UK
+#
+
+"""
+Template for bioschema profile, incl. YAML header
+"""
+
+__author__ = "Bioschemas.org community"
+__copyright__ = """© 2020 Heriot-Watt University, UK
+© 2020 The University of Manchester, UK
+"""
+__license__ = "MIT" # https://spdx.org/licenses/MIT
+
 import datetime
 import urllib.parse
 import yaml
@@ -23,8 +40,9 @@ def profileHeader(profileName, profileDescription, version, status, groupName, h
     header_properties['full_example'] = ghExamplesBase + profileName + '/examples/' + version
     return yaml.dump(header_properties)
 
-description = '''A guide for how to describe datasets in the life-sciences using Schema.org-like
-    annotation.'''
-version = '0.3'
-profileString = profileHeader('Dataset', description, version, 'revision', 'data', True)
-print('---\n' + profileString + '---\n' + footerString)
+if __name__ == "__main__":
+    description = '''A guide for how to describe datasets in the life-sciences using Schema.org-like
+        annotation.'''
+    version = '0.3'
+    profileString = profileHeader('Dataset', description, version, 'revision', 'data', True)
+    print('---\n' + profileString + '---\n' + footerString)
