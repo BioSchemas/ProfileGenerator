@@ -16,7 +16,14 @@ __copyright__ = """© 2020 Heriot-Watt University, UK
 """
 __license__ = "MIT" # https://spdx.org/licenses/MIT
 
-def find_properties(schematype, profile):
+# https://schema.org/docs/developers.html
+
+TEMPLATE=""
+
+def load_schemaorg():
+    pass
+
+def find_properties(schematype, profile, schemaver="latest"):
     return [ # FIXME: hardcoded for now!
         (schematype, []),
         ("CreativeWork", []),
