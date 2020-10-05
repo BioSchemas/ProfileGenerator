@@ -47,10 +47,10 @@ class Status(IntEnum):
 def parse_args(args=None):
     parser = argparse.ArgumentParser(description='Generate Bioschemas.org profile template for a given schema.org type')
 
-    parser.add_argument('--version', "-V", action='version', version='%(prog)s ' + __version__)
+    parser.add_argument('--version', action='version', version='%(prog)s ' + __version__)
 
     parser.add_argument('-v', '--verbose', action='count', default=0,
-        help='Increase verbosity level. For debug logging use -vv')
+        help='Increase verbosity level. Repeat -v for debug and trace logs')
 
     # Common options
     parser.add_argument("schematype", metavar="TYPE",
