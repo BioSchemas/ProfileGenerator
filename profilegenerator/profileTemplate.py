@@ -40,9 +40,13 @@ def profileHeader(profileName, profileDescription, version, status, groupName, h
     header_properties['full_example'] = ghExamplesBase + profileName + '/examples/' + version
     return yaml.dump(header_properties)
 
+def profile(profileName, profileDescription, version, status, groupName, hasLiveDeploy):
+    profileString = profileHeader(profileName, profileDescription, version, status, groupName, hasLiveDeploy)
+    return('---\n' + profileString + '---\n' + footerString)
+
 if __name__ == "__main__":
+    profileName = "Dataset"
+    version = '0.3'
     description = '''A guide for how to describe datasets in the life-sciences using Schema.org-like
         annotation.'''
-    version = '0.3'
-    profileString = profileHeader('Dataset', description, version, 'revision', 'data', True)
-    print('---\n' + profileString + '---\n' + footerString)
+    print(profile(profileName, description, version, 'revision', 'data', True))
