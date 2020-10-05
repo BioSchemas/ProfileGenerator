@@ -45,7 +45,10 @@ class Status(IntEnum):
 def parse_args(args=None):
     parser = argparse.ArgumentParser(description='Generate Bioschemas.org profile template for a given schema.org type')
 
-    parser.add_argument('--version', "-v", action='version', version='%(prog)s ' + __version__)
+    parser.add_argument('--version', "-V", action='version', version='%(prog)s ' + __version__)
+
+    parser.add_argument('-v', '--verbose', action='count', default=0,
+        help='Increase verbosity level. For debug logging use -vv')
 
     # Common options
     parser.add_argument("schematype", metavar="TYPE",
@@ -55,7 +58,6 @@ def parse_args(args=None):
         help="bioschema.org profile name, e.g. Dataset (by default same as TYPE)",
         default=None
     )
-
     parser.add_argument("--schemaver", "-s", metavar="VERSION",
         help="schema.org version to fetch, e.g. 10.0 (default: latest)",
         default="latest")
@@ -75,10 +77,15 @@ def generate(schematype, profile=None, schemaver="latest"):
         for prop in properties:
             print("%s" % prop)
 
+LOG_LEVELS = [logging.WARNING, logging.INFO, logging.DEBUG]
+
 def main(args=None):
     """Main method"""
     try:
         args = parse_args(args)
+        # Count of -v -v to set logging
+        logging.basicConfig(level=LOG_LEVELS[min(len(LOG_LEVELS)-1, args.verbose)])
+
         schematype = args.schematype
         assert schematype
         if "profile" in args:
