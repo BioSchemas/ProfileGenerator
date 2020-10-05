@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+# SPDX-License-Identifer: MIT
 # Copyright 2020 Heriot-Watt University, UK
 # Copyright 2020 The University of Manchester, UK
 #
@@ -58,6 +59,9 @@ setup(
     keywords="bioschemas schema.org jekyll profile",
     install_requires=[required],
     test_suite='test',
+    entry_points={
+        'console_scripts': ["profilegen=profilegenerator.main:main"]
+    },
     classifiers=[
         'Operating System :: OS Independent',
         'Development Status :: 1 - Planning',

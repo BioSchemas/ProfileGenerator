@@ -7,7 +7,7 @@
 
 
 """
-Bioschemas profile generator
+schema.org parser
 """
 
 __author__ = "Bioschemas.org community"
@@ -16,5 +16,9 @@ __copyright__ = """© 2020 Heriot-Watt University, UK
 """
 __license__ = "MIT" # https://spdx.org/licenses/MIT
 
-# Convenience export of public functions/types
-from ._version import __version__  # noqa
+def find_properties(schematype, profile):
+    return [ # FIXME: hardcoded for now!
+        {"class": schematype, props=[] },
+        {"class": "CreativeWork", props=[] }, 
+        {"class": "Thing", props=[{"name": "foo"}] } 
+    ]
