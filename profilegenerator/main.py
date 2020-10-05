@@ -20,6 +20,7 @@ import sys
 import errno
 import logging
 import argparse
+from enum import IntEnum
 
 from ._version import __version__
 from .schemaorg import find_properties
@@ -44,21 +45,22 @@ class Status(IntEnum):
 def parse_args(args=None):
     parser = argparse.ArgumentParser(description='Generate Bioschemas.org profile template for a given schema.org type')
 
-    parser.add_argument('--version', action='version', version='%(prog)s ' + __version__)
+    parser.add_argument('--version', "-v", action='version', version='%(prog)s ' + __version__)
 
     # Common options
     parser.add_argument("schematype", metavar="TYPE",
         help="schema.org type, e.g. Dataset"
         )
-    parser.add_argument("profile", metavar="PROFILE",
+    parser.add_argument("profile", metavar="PROFILE", nargs="?",
         help="bioschema.org profile name, e.g. Dataset (by default same as TYPE)",
         default=None
         )
     return parser.parse_args(args)
 
-def generate(schematype, profile):
+def generate(schematype, profile=None):
     """Generate bioschemas profile for a given schematype"""
-    props = find_properties(schematype)
+    profile = profile or schematype
+    props = find_properties(schematype, profile)
     
     ## TODO: Make yaml, template etc.
     print("Profile: %s" % profile)
@@ -74,7 +76,7 @@ def main(args=None):
         args = parse_args(args)
         schematype = args.schematype
         assert schematype
-        if args.profile:
+        if "profile" in args:
             profile = args.profile
         else:
             profile = schematype
