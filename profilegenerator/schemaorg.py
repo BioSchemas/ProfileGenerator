@@ -18,7 +18,7 @@ __license__ = "MIT" # https://spdx.org/licenses/MIT
 
 def find_properties(schematype, profile):
     return [ # FIXME: hardcoded for now!
-        {"class": schematype, props=[] },
-        {"class": "CreativeWork", props=[] }, 
-        {"class": "Thing", props=[{"name": "foo"}] } 
+        (schematype, []),
+        ("CreativeWork", []),
+        ("Thing", [{"name": "foo"} ])
     ]
