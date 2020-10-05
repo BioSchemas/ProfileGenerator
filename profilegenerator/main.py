@@ -23,7 +23,9 @@ import argparse
 from enum import IntEnum
 
 from ._version import __version__
+from ._logging import LOG_TRACE
 from .schemaorg import find_properties
+from .profileTemplate import profile
 
 _logger = logging.getLogger(__name__)
 
@@ -63,21 +65,24 @@ def parse_args(args=None):
         default="latest")
     return parser.parse_args(args)
 
-def generate(schematype, profile=None, schemaver="latest"):
+def generate(schematype, profileName=None, schemaver="latest"):
     """Generate bioschemas profile for a given schematype"""
-    profile = profile or schematype
-    props = find_properties(schematype, profile, schemaver)
+    profileName = profileName or schematype
+    props = find_properties(schematype, profileName, schemaver)
     
     ## TODO: Make yaml, template etc.
-    print("Profile: %s" % profile)
-    print("Based on schema.org: %s" % schemaver)
+    _logger.info("Profile: %s" % profileName)
+    _logger.info("Based on schema.org: %s" % schemaver)
     for (typ, properties) in props:
-        print("Type: %s " % typ)
-        print("Properties:")
+        _logger.debug("Type: %s " % typ)
+        _logger.debug("Properties:")
         for prop in properties:
-            print("%s" % prop)
+            _logger.debug("%s" % prop)
+    p = profile(profileName, profileName, "0.1-DRAFT", "draft", profileName, False)
+    print(p)
 
-LOG_LEVELS = [logging.WARNING, logging.INFO, logging.DEBUG]
+
+LOG_LEVELS = [logging.WARNING, logging.INFO, logging.DEBUG, LOG_TRACE]
 
 def main(args=None):
     """Main method"""
@@ -89,10 +94,10 @@ def main(args=None):
         schematype = args.schematype
         assert schematype
         if "profile" in args:
-            profile = args.profile
+            profileName = args.profile
         else:
-            profile = schematype
-        return generate(schematype, profile, args.schemaver)
+            profileName = schematype
+        return generate(schematype, profileName, args.schemaver)
     except OSError as e:
         _logger.fatal(e)
         return Status.IO_ERROR

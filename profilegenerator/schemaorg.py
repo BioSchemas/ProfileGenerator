@@ -18,9 +18,9 @@ __license__ = "MIT" # https://spdx.org/licenses/MIT
 import rdflib
 from string import Template
 import logging
+from ._logging import LOG_TRACE
 
 _logger = logging.getLogger(__name__)
-
 
 # https://schema.org/docs/developers.html
 SCHEMA_URL=Template("https://schema.org/version/${version}/schemaorg-all-http.jsonld")
@@ -31,8 +31,8 @@ def load_schemaorg(schemaver="latest"):
     d = rdflib.Dataset()
     result = d.parse(url, format="json-ld")
     _logger.info("Loaded %s quads" % len(d))
-    if _logger.isEnabledFor(logging.DEBUG):
-        _logger.debug(d.serialize(format="trig").decode("utf-8"))
+    if _logger.isEnabledFor(LOG_TRACE):
+        _logger.log(LOG_TRACE, d.serialize(format="trig").decode("utf-8"))
     return result
 
 def find_properties(schematype, profile, schemaver="latest"):
