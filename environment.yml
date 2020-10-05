@@ -1,0 +1,10 @@
+name: profilegenerator
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.8
+  - rdflib-jsonld=0.5
+  - pyyaml=5.3
+
