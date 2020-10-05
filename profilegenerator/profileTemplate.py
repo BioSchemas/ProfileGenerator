@@ -27,4 +27,4 @@ description = '''A guide for how to describe datasets in the life-sciences using
     annotation.'''
 version = '0.3'
 profileString = profileHeader('Dataset', description, version, 'revision', 'data', True)
-print(profileString + footerString)
+print('---\n' + profileString + '---\n' + footerString)
