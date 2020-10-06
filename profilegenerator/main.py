@@ -83,7 +83,7 @@ def generate(schematype, profileName=None, schemaver="latest"):
     profile = '---\n'
     profileDict = profileHeader(profileName, profileName, "0.1-DRAFT", "draft", profileName, False)
     mappingProperies = []
-    mappingProperies.append(profileProperty('schemaPropertyName', '- type 1\n - type 2', 'schema property description', 'Bioschemas description', 'unspecified', None, None, None))
+    mappingProperies.append(profileProperty('schemaPropertyName', ['type 1','type 2'], 'schema property description', 'Bioschemas description', 'unspecified', None, None, None))
     profileDict['mapping'] = mappingProperies
     profile += yaml.dump(profileDict)
     profile += '---\n'
