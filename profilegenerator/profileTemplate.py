@@ -23,9 +23,10 @@ ghBase = 'https://github.com/BioSchemas/specifications/'
 ghTasksBase = ghBase + 'labels/type%3A%20'
 ghExamplesBase = ghBase + 'tree/master/'
 
-def profileHeader(profileName, profileDescription, version, status, groupName, hasLiveDeploy):
+def profileHeader(profileName, schemaType, profileDescription, version, status, groupName, hasLiveDeploy):
     header_properties = {}
     header_properties['name'] = profileName
+    header_properties['official_type'] = schemaType
     header_properties['description'] = profileDescription
     header_properties['version'] = version
     header_properties['version_date'] = datetime.datetime.utcnow().strftime('%Y%m%dT%H%M%S')

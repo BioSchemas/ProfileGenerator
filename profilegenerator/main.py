@@ -90,16 +90,23 @@ def generate(schematype, profileName=None, schemaver="latest", groupName=None, d
         for prop in properties:
             _logger.debug("%s" % prop)
     description = description or profileName ## TODO: From type
+    version = "0.1"
+    status = STATUS_DRAFT
     profile = '---\n'
-    profileDict = profileHeader(profileName, description, "0.1-DRAFT", "draft", groupName, False)
+    profileDict = profileHeader(profileName, schematype, description, version, status, groupName, False)
     mappingProperies = []
     mappingProperies.append(profileProperty('schemaPropertyName', ['type 1','type 2'], 'schema property description', 'Bioschemas description', MARGINALITY_UNSPECIFIED, None, None, None))
     profileDict['mapping'] = mappingProperies
     profile += yaml.dump(profileDict)
     profile += '---\n'
     profile += profileFooter()
+    writeToFile(profileName, version, status, profile)
     print(profile)
 
+def writeToFile(profileName, version, status, profile):
+    fo = open(profileName+'-'+version+'-'+status+'-'+'.md', 'w')
+    fo.write(profile)
+    fo.close()
 
 LOG_LEVELS = [logging.WARNING, logging.INFO, logging.DEBUG, LOG_TRACE]
 
