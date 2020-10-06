@@ -40,11 +40,18 @@ def profileHeader(profileName, profileDescription, version, status, groupName, h
     header_properties['full_example'] = ghExamplesBase + profileName + '/examples/' + version
     return yaml.dump(header_properties)
 
-def profileProperty(propertyName, expectedTypes, schemaDescription):
+def profileProperty(propertyName, expectedTypes, schemaDescription, bsDescription, marginality, cardinality, controlledVocabs, example):
     propertyDict = {}
     propertyDict['name'] = propertyName
     propertyDict['expected_types'] = expectedTypes
     propertyDict['description'] = schemaDescription
+    propertyDict['type'] = None
+    propertyDict['type_url'] = None
+    propertyDict['bsc_description'] = bsDescription
+    propertyDict['marginality'] = marginality
+    propertyDict['cardinality'] = cardinality
+    propertyDict['controlled_vocab'] = controlledVocabs
+    propertyDict['example'] = example
     return yaml.dump(propertyDict)
 
 def profileFooter():

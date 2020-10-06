@@ -80,7 +80,7 @@ def generate(schematype, profileName=None, schemaver="latest"):
             _logger.debug("%s" % prop)
     profile = '---\n'
     profile += profileHeader(profileName, profileName, "0.1-DRAFT", "draft", profileName, False)
-    profile += profileProperty('schemaPropertyName', '- type 1\n - type 2', 'schema property description')
+    profile += profileProperty('schemaPropertyName', '- type 1\n - type 2', 'schema property description', 'Bioschemas description', 'unspecified', None, None, None)
     profile += '---\n'
     profile += profileFooter()
     print(profile)
