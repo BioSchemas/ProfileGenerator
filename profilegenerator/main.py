@@ -24,7 +24,7 @@ from enum import IntEnum
 
 from ._version import __version__
 from ._logging import LOG_TRACE
-from .schemaorg import find_properties
+#from .schemaorg import find_properties
 from .profileTemplate import profileHeader, profileProperty, profileFooter
 from .profileConstants import *
 
@@ -80,7 +80,8 @@ def generate(schematype, profileName=None, schemaver="latest", groupName=None, d
     profileName = profileName or schematype
     groupName = groupName or profileName
     
-    props = find_properties(schematype, schemaver)
+    #props = find_properties(schematype, schemaver)
+    props = []
     
     ## TODO: Make yaml, template etc.
     _logger.info("Profile: %s" % profileName)
