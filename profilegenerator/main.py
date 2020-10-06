@@ -94,7 +94,7 @@ def generate(schematype, profileName=None, schemaver="latest", groupName=None, d
     version = "0.1"
     status = STATUS_DRAFT
     profile = '---\n'
-    profileDict = profileHeader(profileName, schematype, description, version, status, groupName, False)
+    profileDict = profileHeader(profileName, schematype, False, description, version, status, groupName, False)
     mappingProperies = []
     mappingProperies.append(profileProperty('schemaPropertyName', ['type 1','type 2'], 'schema property description', 'Bioschemas description', MARGINALITY_UNSPECIFIED, None, None, None))
     profileDict['mapping'] = mappingProperies
