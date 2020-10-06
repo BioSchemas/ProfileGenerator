@@ -40,9 +40,14 @@ def profileHeader(profileName, profileDescription, version, status, groupName, h
     header_properties['full_example'] = ghExamplesBase + profileName + '/examples/' + version
     return yaml.dump(header_properties)
 
-def profile(profileName, profileDescription, version, status, groupName, hasLiveDeploy):
-    profileString = profileHeader(profileName, profileDescription, version, status, groupName, hasLiveDeploy)
-    return('---\n' + profileString + '---\n' + footerString)
+def profileProperty(propertyName, expectedTypes, schemaDescription):
+    propertyDict['name'] = propertyName
+    propertyDict['expected_types'] = expectedTypes
+    propertyDict['description'] = schemaDescription
+    return yaml.dump(propertyDict)
+
+def profileFooter():
+    return(footerString)
 
 if __name__ == "__main__":
     profileName = "Dataset"

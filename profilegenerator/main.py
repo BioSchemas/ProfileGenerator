@@ -25,7 +25,7 @@ from enum import IntEnum
 from ._version import __version__
 from ._logging import LOG_TRACE
 from .schemaorg import find_properties
-from .profileTemplate import profile
+from .profileTemplate import profileHeader, profileFooter
 
 _logger = logging.getLogger(__name__)
 
@@ -69,7 +69,7 @@ def generate(schematype, profileName=None, schemaver="latest"):
     """Generate bioschemas profile for a given schematype"""
     profileName = profileName or schematype
     props = find_properties(schematype, profileName, schemaver)
-    
+
     ## TODO: Make yaml, template etc.
     _logger.info("Profile: %s" % profileName)
     _logger.info("Based on schema.org: %s" % schemaver)
@@ -78,8 +78,11 @@ def generate(schematype, profileName=None, schemaver="latest"):
         _logger.debug("Properties:")
         for prop in properties:
             _logger.debug("%s" % prop)
-    p = profile(profileName, profileName, "0.1-DRAFT", "draft", profileName, False)
-    print(p)
+    profile = '---\n'
+    profile += profileHeader(profileName, profileName, "0.1-DRAFT", "draft", profileName, False)
+    profile += '---\n'
+    profile += profileFooter()
+    print(profile)
 
 
 LOG_LEVELS = [logging.WARNING, logging.INFO, logging.DEBUG, LOG_TRACE]
