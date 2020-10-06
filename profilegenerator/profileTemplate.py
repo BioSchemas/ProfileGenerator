@@ -17,7 +17,6 @@ __license__ = "MIT" # https://spdx.org/licenses/MIT
 
 import datetime
 import urllib.parse
-import yaml
 
 footerString = '{% include profileHTML %}'
 ghBase = 'https://github.com/BioSchemas/specifications/'
@@ -38,11 +37,24 @@ def profileHeader(profileName, profileDescription, version, status, groupName, h
     if hasLiveDeploy:
         header_properties['live_deploy'] = '/liveDeploys/'
     header_properties['full_example'] = ghExamplesBase + profileName + '/examples/' + version
-    return yaml.dump(header_properties)
+    return header_properties
 
-def profile(profileName, profileDescription, version, status, groupName, hasLiveDeploy):
-    profileString = profileHeader(profileName, profileDescription, version, status, groupName, hasLiveDeploy)
-    return('---\n' + profileString + '---\n' + footerString)
+def profileProperty(propertyName, expectedTypes, schemaDescription, bsDescription, marginality, cardinality, controlledVocabs, example):
+    propertyDict = {}
+    propertyDict['property'] = propertyName
+    propertyDict['expected_types'] = expectedTypes
+    propertyDict['description'] = schemaDescription
+    propertyDict['type'] = None
+    propertyDict['type_url'] = None
+    propertyDict['bsc_description'] = bsDescription
+    propertyDict['marginality'] = marginality
+    propertyDict['cardinality'] = cardinality
+    propertyDict['controlled_vocab'] = controlledVocabs
+    propertyDict['example'] = example
+    return propertyDict
+
+def profileFooter():
+    return(footerString)
 
 if __name__ == "__main__":
     profileName = "Dataset"

@@ -25,7 +25,10 @@ from enum import IntEnum
 from ._version import __version__
 from ._logging import LOG_TRACE
 from .schemaorg import find_properties
-from .profileTemplate import profile
+from .profileTemplate import profileHeader, profileProperty, profileFooter
+from .profileConstants import *
+
+import yaml
 
 _logger = logging.getLogger(__name__)
 
@@ -69,7 +72,7 @@ def parse_args(args=None):
         default="latest")
     return parser.parse_args(args)
 
-def generate(schematype, profileName=None, schemaver="latest"):
+def generate(schematype, profileName=None, schemaver="latest", description=None):
     """Generate bioschemas profile for a given schematype"""
     assert schematype and schemaver
     profileName = profileName or schematype
@@ -83,9 +86,16 @@ def generate(schematype, profileName=None, schemaver="latest"):
         _logger.debug("Properties:")
         for prop in properties:
             _logger.debug("%s" % prop)
-    description = profileName ## TODO: From type
-    p = profile(profileName, description, "0.1-DRAFT", "draft", groupName, False)
-    print(p)
+    description = description or profileName ## TODO: From type
+    profile = '---\n'
+    profileDict = profileHeader(profileName, description, "0.1-DRAFT", "draft", groupName, False)
+    mappingProperies = []
+    mappingProperies.append(profileProperty('schemaPropertyName', ['type 1','type 2'], 'schema property description', 'Bioschemas description', MARGINALITY_UNSPECIFIED, None, None, None))
+    profileDict['mapping'] = mappingProperies
+    profile += yaml.dump(profileDict)
+    profile += '---\n'
+    profile += profileFooter()
+    print(profile)
 
 
 LOG_LEVELS = [logging.WARNING, logging.INFO, logging.DEBUG, LOG_TRACE]
@@ -100,8 +110,8 @@ def main(args=sys.args):
         schematype = args.schematype
         assert schematype
         profileName = "profile" in args and args.profile or schematype
-        groupName = args.group or profileName
-        return generate(schematype, profileName, args.schemaver, groupName)
+        groupName = args.group or profileName        
+        return generate(schematype, profileName, args.schemaver, groupName, args.description)
     except OSError as e:
         _logger.fatal(e)
         return Status.IO_ERROR
