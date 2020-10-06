@@ -14,6 +14,14 @@ If you have Conda/[BioConda](https://bioconda.github.io/) the below should hopef
     python setup.py install
 ```
 
+## Usage
+
+```
+conda activate profilegenerator
+python setup.py install  # reinstall on code update
+profilegen -v
+```
+
 If you don't have Conda, or use virtualenv or similar, then `setup.py` lists the Python dependencies. This code has been tested with Python 3.8.
 
 ## License
