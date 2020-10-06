@@ -1,3 +1,6 @@
+SCHEMA_URL = 'https://schema.org/'
+BIOSCHEMAS_URL = 'https://bioschemas.org/'
+
 STATUS_DRAFT = 'DRAFT'
 STATUS_RELEASE = 'RELEASE'
 STATUS_DEPRECATED = 'DEPRECATED'
