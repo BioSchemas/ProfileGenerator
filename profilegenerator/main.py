@@ -50,17 +50,18 @@ class Status(IntEnum):
 def parse_args(args=None):
     parser = argparse.ArgumentParser(description='Generate Bioschemas.org profile template for a given schema.org type')
 
-    parser.add_argument('--version', action='version', version='%(prog)s ' + __version__)
-
-    parser.add_argument('-v', '--verbose', action='count', default=0,
-        help='Increase verbosity level. Repeat -v for debug and trace logs')
-
     # Common options
     parser.add_argument("schematype", metavar="TYPE",
         help='schema.org type, e.g. "Dataset"')
     parser.add_argument("profile", metavar="PROFILE", nargs="?",
         help='bioschema.org profile name, e.g. "Dataset" (default: same as TYPE)',
         default=None)
+
+    parser.add_argument('--version', action='version', version='%(prog)s ' + __version__)
+
+    parser.add_argument('-v', '--verbose', action='count', default=0,
+        help='Increase verbosity level. Repeat -v for debug and trace logs')
+
     parser.add_argument("--group", "-g", metavar="GROUP",
         help='bioschema.org profile name, e.g. "Workflow" (default: same as PROFILE)',
         default=None)    
@@ -72,11 +73,13 @@ def parse_args(args=None):
         default="latest")
     return parser.parse_args(args)
 
-def generate(schematype, profileName=None, schemaver="latest", description=None):
+def generate(schematype, profileName=None, schemaver="latest", groupName=None, description=None):
     """Generate bioschemas profile for a given schematype"""
     assert schematype and schemaver
     profileName = profileName or schematype
-    props = find_properties(schematype, profileName, schemaver, groupName)
+    groupName = groupName or profileName
+    
+    props = find_properties(schematype, profileName, schemaver)
     
     ## TODO: Make yaml, template etc.
     _logger.info("Profile: %s" % profileName)
@@ -100,10 +103,10 @@ def generate(schematype, profileName=None, schemaver="latest", description=None)
 
 LOG_LEVELS = [logging.WARNING, logging.INFO, logging.DEBUG, LOG_TRACE]
 
-def main(args=sys.args):
+def main(args=None):
     """Main method"""
     try:
-        args = parse_args(args)
+        args = parse_args()
         # Count of -v -v to set logging
         logging.basicConfig(level=LOG_LEVELS[min(len(LOG_LEVELS)-1, args.verbose)])
 
