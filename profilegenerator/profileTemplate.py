@@ -18,7 +18,7 @@ __license__ = "MIT" # https://spdx.org/licenses/MIT
 import datetime
 import urllib.parse
 
-footerString = '{% include profileHTML %}'
+footerString = '{% include profileHTML.html %}'
 ghBase = 'https://github.com/BioSchemas/specifications/'
 ghTasksBase = ghBase + 'labels/type%3A%20'
 ghExamplesBase = ghBase + 'tree/master/'

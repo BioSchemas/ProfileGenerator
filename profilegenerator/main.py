@@ -105,7 +105,7 @@ def generate(schematype, profileName=None, schemaver="latest", groupName=None, d
     print(profile)
 
 def writeToFile(profileName, version, status, profile):
-    filename = profileName+'-'+version+'-'+status+'.md'
+    filename = profileName+'-'+version+'-'+status+'.html'
     if (os.path.exists(filename)):
         _logger.warning("File already exists: %s" % filename)
         while 1:
