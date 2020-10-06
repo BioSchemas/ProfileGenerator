@@ -27,6 +27,8 @@ from ._logging import LOG_TRACE
 from .schemaorg import find_properties
 from .profileTemplate import profileHeader, profileProperty, profileFooter
 
+import yaml
+
 _logger = logging.getLogger(__name__)
 
 class Status(IntEnum):
@@ -79,8 +81,9 @@ def generate(schematype, profileName=None, schemaver="latest"):
         for prop in properties:
             _logger.debug("%s" % prop)
     profile = '---\n'
-    profile += profileHeader(profileName, profileName, "0.1-DRAFT", "draft", profileName, False)
-    profile += profileProperty('schemaPropertyName', '- type 1\n - type 2', 'schema property description', 'Bioschemas description', 'unspecified', None, None, None)
+    profileDict = profileHeader(profileName, profileName, "0.1-DRAFT", "draft", profileName, False)
+    profileDict['mapping'] = profileProperty('schemaPropertyName', '- type 1\n - type 2', 'schema property description', 'Bioschemas description', 'unspecified', None, None, None)
+    profile += yaml.dump(profileDict)
     profile += '---\n'
     profile += profileFooter()
     print(profile)
