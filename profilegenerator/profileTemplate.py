@@ -41,7 +41,7 @@ def profileHeader(profileName, profileDescription, version, status, groupName, h
 
 def profileProperty(propertyName, expectedTypes, schemaDescription, bsDescription, marginality, cardinality, controlledVocabs, example):
     propertyDict = {}
-    propertyDict['name'] = propertyName
+    propertyDict['property'] = propertyName
     propertyDict['expected_types'] = expectedTypes
     propertyDict['description'] = schemaDescription
     propertyDict['type'] = None
