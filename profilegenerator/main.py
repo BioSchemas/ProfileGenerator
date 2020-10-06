@@ -54,23 +54,24 @@ def parse_args(args=None):
 
     # Common options
     parser.add_argument("schematype", metavar="TYPE",
-        help="schema.org type, e.g. Dataset"
-        )
+        help='schema.org type, e.g. "Dataset"')
     parser.add_argument("profile", metavar="PROFILE", nargs="?",
-        help="bioschema.org profile name, e.g. Dataset (by default same as TYPE)",
-        default=None
-    )
+        help='bioschema.org profile name, e.g. "Dataset" (default: same as TYPE)',
+        default=None)
     parser.add_argument("--group", "-g", metavar="GROUP",
-        help="bioschema.org profile name, e.g. Dataset (by default same as PROFILE)",
-        default=None
-    )    
+        help='bioschema.org profile name, e.g. "Workflow" (default: same as PROFILE)',
+        default=None)    
+    parser.add_argument("--description", "-d", metavar="DESCRIPTION",
+        help="bioschema.org profile description (default: TYPE's schema.org description)",
+        default=None)
     parser.add_argument("--schemaver", "-s", metavar="VERSION",
-        help="schema.org version to fetch, e.g. 10.0 (default: latest)",
+        help='schema.org version to fetch, e.g. 10.0 (default: "latest")',
         default="latest")
     return parser.parse_args(args)
 
 def generate(schematype, profileName=None, schemaver="latest"):
     """Generate bioschemas profile for a given schematype"""
+    assert schematype and schemaver
     profileName = profileName or schematype
     props = find_properties(schematype, profileName, schemaver, groupName)
     
@@ -89,7 +90,7 @@ def generate(schematype, profileName=None, schemaver="latest"):
 
 LOG_LEVELS = [logging.WARNING, logging.INFO, logging.DEBUG, LOG_TRACE]
 
-def main(args=None):
+def main(args=sys.args):
     """Main method"""
     try:
         args = parse_args(args)
@@ -98,10 +99,7 @@ def main(args=None):
 
         schematype = args.schematype
         assert schematype
-        if "profile" in args:
-            profileName = args.profile
-        else:
-            profileName = schematype
+        profileName = "profile" in args and args.profile or schematype
         groupName = args.group or profileName
         return generate(schematype, profileName, args.schemaver, groupName)
     except OSError as e:
