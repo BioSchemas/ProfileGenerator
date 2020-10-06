@@ -23,15 +23,6 @@ ghBase = 'https://github.com/BioSchemas/specifications/'
 ghTasksBase = ghBase + 'labels/type%3A%20'
 ghExamplesBase = ghBase + 'tree/master/'
 
-MARGINALITY_UNSPECIFIED = 'Unspecified'
-MARGINALITY_NOT_APPLICABLE = 'Not Applicable'
-MARGINALITY_RECOMMEDED = 'Recommended'
-MARGINALITY_MINIMAL = 'Minimum'
-MARGINALITY_OPTIONAL = 'Optional'
-
-CARDINALITY_MANY = 'MANY'
-CARDINALITY_ONE = 'ONE'
-
 def profileHeader(profileName, profileDescription, version, status, groupName, hasLiveDeploy):
     header_properties = {}
     header_properties['name'] = profileName

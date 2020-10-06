@@ -26,6 +26,7 @@ from ._version import __version__
 from ._logging import LOG_TRACE
 from .schemaorg import find_properties
 from .profileTemplate import profileHeader, profileProperty, profileFooter
+from .profileConstants import *
 
 import yaml
 
@@ -83,7 +84,7 @@ def generate(schematype, profileName=None, schemaver="latest"):
     profile = '---\n'
     profileDict = profileHeader(profileName, profileName, "0.1-DRAFT", "draft", profileName, False)
     mappingProperies = []
-    mappingProperies.append(profileProperty('schemaPropertyName', ['type 1','type 2'], 'schema property description', 'Bioschemas description', 'unspecified', None, None, None))
+    mappingProperies.append(profileProperty('schemaPropertyName', ['type 1','type 2'], 'schema property description', 'Bioschemas description', MARGINALITY_UNSPECIFIED, None, None, None))
     profileDict['mapping'] = mappingProperies
     profile += yaml.dump(profileDict)
     profile += '---\n'
