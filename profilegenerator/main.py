@@ -29,6 +29,7 @@ from .profileTemplate import profileHeader, profileProperty, profileFooter
 from .profileConstants import *
 
 import yaml
+import os
 
 _logger = logging.getLogger(__name__)
 
@@ -90,16 +91,37 @@ def generate(schematype, profileName=None, schemaver="latest", groupName=None, d
         for prop in properties:
             _logger.debug("%s" % prop)
     description = description or profileName ## TODO: From type
+    version = "0.1"
+    status = STATUS_DRAFT
     profile = '---\n'
-    profileDict = profileHeader(profileName, description, "0.1-DRAFT", "draft", groupName, False)
+    profileDict = profileHeader(profileName, schematype, False, description, version, status, groupName, False)
     mappingProperies = []
     mappingProperies.append(profileProperty('schemaPropertyName', ['type 1','type 2'], 'schema property description', 'Bioschemas description', MARGINALITY_UNSPECIFIED, None, None, None))
     profileDict['mapping'] = mappingProperies
     profile += yaml.dump(profileDict)
     profile += '---\n'
     profile += profileFooter()
+    writeToFile(profileName, version, status, profile)
     print(profile)
 
+def writeToFile(profileName, version, status, profile):
+    filename = profileName+'-'+version+'-'+status+'.html'
+    if (os.path.exists(filename)):
+        _logger.warning("File already exists: %s" % filename)
+        while 1:
+            question = 'Overwrite '+ filename + ' (Y/n): '
+            sys.stdout.write(question)
+            choice = input().lower()
+            if choice[:1] == 'y' or choice[:1] == '':
+                break
+            elif choice[:1] == 'n':
+                _logger.fatal("File %s already exists and not overwritten." % filename)
+                return
+            else:
+                sys.stdout.write("Please respond with 'y' or 'n'.\n")
+    fo = open(filename, 'w')
+    fo.write(profile)
+    fo.close()
 
 LOG_LEVELS = [logging.WARNING, logging.INFO, logging.DEBUG, LOG_TRACE]
 

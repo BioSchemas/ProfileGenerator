@@ -17,15 +17,22 @@ __license__ = "MIT" # https://spdx.org/licenses/MIT
 
 import datetime
 import urllib.parse
+from .profileConstants import *
 
-footerString = '{% include profileHTML %}'
+footerString = '{% include profileHTML.html %}'
 ghBase = 'https://github.com/BioSchemas/specifications/'
 ghTasksBase = ghBase + 'labels/type%3A%20'
 ghExamplesBase = ghBase + 'tree/master/'
 
-def profileHeader(profileName, profileDescription, version, status, groupName, hasLiveDeploy):
+def profileHeader(profileName, schemaType, isBioschemasType, profileDescription, version, status, groupName, hasLiveDeploy):
     header_properties = {}
     header_properties['name'] = profileName
+    header_properties['official_type'] = schemaType
+    if isBioschemasType:
+        base_url = BIOSCHEMAS_URL
+    else:
+        base_url = SCHEMA_URL
+    header_properties['type_base_url'] = base_url
     header_properties['description'] = profileDescription
     header_properties['version'] = version
     header_properties['version_date'] = datetime.datetime.utcnow().strftime('%Y%m%dT%H%M%S')
