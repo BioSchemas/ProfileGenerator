@@ -29,6 +29,7 @@ from .profileTemplate import profileHeader, profileProperty, profileFooter
 from .profileConstants import *
 
 import yaml
+import os
 
 _logger = logging.getLogger(__name__)
 
@@ -104,7 +105,21 @@ def generate(schematype, profileName=None, schemaver="latest", groupName=None, d
     print(profile)
 
 def writeToFile(profileName, version, status, profile):
-    fo = open(profileName+'-'+version+'-'+status+'-'+'.md', 'w')
+    filename = profileName+'-'+version+'-'+status+'.md'
+    if (os.path.exists(filename)):
+        _logger.warning("File already exists: %s" % filename)
+        while 1:
+            question = 'Overwrite '+ filename + ' (Y/n): '
+            sys.stdout.write(question)
+            choice = input().lower()
+            if choice[:1] == 'y' or choice[:1] == '':
+                break
+            elif choice[:1] == 'n':
+                _logger.fatal("File %s already exists and not overwritten." % filename)
+                return
+            else:
+                sys.stdout.write("Please respond with 'y' or 'n'.\n")
+    fo = open(filename, 'w')
     fo.write(profile)
     fo.close()
 
