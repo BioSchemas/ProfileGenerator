@@ -60,6 +60,10 @@ def parse_args(args=None):
         help="bioschema.org profile name, e.g. Dataset (by default same as TYPE)",
         default=None
     )
+    parser.add_argument("--group", "-g", metavar="GROUP",
+        help="bioschema.org profile name, e.g. Dataset (by default same as PROFILE)",
+        default=None
+    )    
     parser.add_argument("--schemaver", "-s", metavar="VERSION",
         help="schema.org version to fetch, e.g. 10.0 (default: latest)",
         default="latest")
@@ -68,7 +72,7 @@ def parse_args(args=None):
 def generate(schematype, profileName=None, schemaver="latest"):
     """Generate bioschemas profile for a given schematype"""
     profileName = profileName or schematype
-    props = find_properties(schematype, profileName, schemaver)
+    props = find_properties(schematype, profileName, schemaver, groupName)
     
     ## TODO: Make yaml, template etc.
     _logger.info("Profile: %s" % profileName)
@@ -78,7 +82,8 @@ def generate(schematype, profileName=None, schemaver="latest"):
         _logger.debug("Properties:")
         for prop in properties:
             _logger.debug("%s" % prop)
-    p = profile(profileName, profileName, "0.1-DRAFT", "draft", profileName, False)
+    description = profileName ## TODO: From type
+    p = profile(profileName, description, "0.1-DRAFT", "draft", groupName, False)
     print(p)
 
 
@@ -97,7 +102,8 @@ def main(args=None):
             profileName = args.profile
         else:
             profileName = schematype
-        return generate(schematype, profileName, args.schemaver)
+        groupName = args.group or profileName
+        return generate(schematype, profileName, args.schemaver, groupName)
     except OSError as e:
         _logger.fatal(e)
         return Status.IO_ERROR
