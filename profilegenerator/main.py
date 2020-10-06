@@ -25,7 +25,7 @@ from enum import IntEnum
 from ._version import __version__
 from ._logging import LOG_TRACE
 from .schemaorg import find_properties
-from .profileTemplate import profileHeader, profileFooter
+from .profileTemplate import profileHeader, profileProperty, profileFooter
 
 _logger = logging.getLogger(__name__)
 
@@ -80,6 +80,7 @@ def generate(schematype, profileName=None, schemaver="latest"):
             _logger.debug("%s" % prop)
     profile = '---\n'
     profile += profileHeader(profileName, profileName, "0.1-DRAFT", "draft", profileName, False)
+    profile += profileProperty('schemaPropertyName', '- type 1\n - type 2', 'schema property description')
     profile += '---\n'
     profile += profileFooter()
     print(profile)

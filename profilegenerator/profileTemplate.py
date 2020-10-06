@@ -41,6 +41,7 @@ def profileHeader(profileName, profileDescription, version, status, groupName, h
     return yaml.dump(header_properties)
 
 def profileProperty(propertyName, expectedTypes, schemaDescription):
+    propertyDict = {}
     propertyDict['name'] = propertyName
     propertyDict['expected_types'] = expectedTypes
     propertyDict['description'] = schemaDescription
