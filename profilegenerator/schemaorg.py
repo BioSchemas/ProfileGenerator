@@ -49,7 +49,12 @@ class SchemaType(type):
         return "<%s>" % self.uri
 
     def __str__(self):
-        return self.uri
+        return self.label or self.uri
+
+    #abstract
+    @property
+    def label(self):
+        return None # Not implemented
 
     @classmethod
     def dataset(cls, schemaver="latest"):
@@ -114,13 +119,13 @@ class SchemaType(type):
     @property
     def label(self):
         for label in self.graph().objects(self.uri, RDFS.label):
-            return label # usually only one!
+            return str(label) # usually only one!
         return None
 
     @property            
     def comment(self):
         for comment in self.graph().objects(self.uri, RDFS.comment):
-            return comment
+            return str(comment)
         return None
 
 class SchemaProperty(SchemaType):
@@ -140,7 +145,6 @@ class SchemaProperty(SchemaType):
             self.graph().objects(self.uri, SCHEMA.rangeIncludes)]
 
 class SchemaClass(SchemaType):        
-
     @classmethod
     def _supertypes(cls, uri: URIRef):
         return map(SchemaClass.as_type, 
@@ -154,10 +158,18 @@ class SchemaClass(SchemaType):
         return [SchemaProperty.as_type(s) for s in 
             self.graph().subjects(SCHEMA.rangeIncludes, self.uri)]
 
-def find_properties(schematype):
+def find_class(schematype):
     if not isinstance(schematype, Identifier):
-         schematype = SCHEMA[schematype]
-    s = SchemaClass.as_type(schematype)
+        schematype = SCHEMA[schematype]
+    return SchemaClass.as_type(schematype)
+
+def find_property(schemaprop):
+    if not isinstance(schemaprop, Identifier):
+        schemaprop = SCHEMA[schemaprop]
+    return SchemaProperty.as_type(schemaprop)
+
+def find_properties(schematype):
+    s = find_class(schematype)
     type_properties = OrderedDict()
     for schematype in s.ancestors:
         type_properties[schematype] = list(schematype.includedInDomainOf())
