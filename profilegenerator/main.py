@@ -91,11 +91,14 @@ def generate(schematype, profileName=None, schemaver="latest", groupName=None, d
         for prop in properties:
             _logger.debug("%s" % prop)
     description = description or profileName ## TODO: From type
+    # TODO: Schema version
+    # TODO: Type hierarchy as dict with namespace and typename
     version = "0.1"
     status = STATUS_DRAFT
     profile = '---\n'
     profileDict = profileHeader(profileName, schematype, False, description, version, status, groupName, False)
     mappingProperies = []
+    # TODO: Include mapping of property to domain ontology terms
     mappingProperies.append(profileProperty('schemaPropertyName', ['type 1','type 2'], 'schema property description', 'Bioschemas description', MARGINALITY_UNSPECIFIED, None, None, None))
     profileDict['mapping'] = mappingProperies
     profile += yaml.dump(profileDict)
