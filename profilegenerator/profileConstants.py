@@ -16,6 +16,7 @@ __copyright__ = """© 2020 Heriot-Watt University, UK
 __license__ = "MIT" # https://spdx.org/licenses/MIT
 
 SCHEMA_URL = 'https://schema.org/'
+PENDING_SCHEMA_URL = 'https://pending.schema.org/'
 BIOSCHEMAS_URL = 'https://bioschemas.org/'
 
 STATUS_DRAFT = 'DRAFT'
