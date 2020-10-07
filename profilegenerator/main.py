@@ -91,7 +91,6 @@ def generate(schematype, profileName=None, schemaver="latest", groupName=None, d
         for prop in properties:
             _logger.debug("%s" % prop)
     description = description or profileName ## TODO: From type
-    # TODO: Schema version
     # TODO: Type hierarchy as dict with namespace and typename
     version = "0.1"
     status = STATUS_DRAFT
