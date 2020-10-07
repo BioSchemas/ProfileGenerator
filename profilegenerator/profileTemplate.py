@@ -110,6 +110,7 @@ def profileProperty(propertyName, expectedTypes, schemaDescription, bsDescriptio
     dict
         Dictionary of terms used for the property in the website YAML
     """
+    # TODO: Add mapping/alignment property to domain ontologies
     propertyDict = {}
     propertyDict['property'] = propertyName
     propertyDict['expected_types'] = expectedTypes
