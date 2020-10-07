@@ -25,6 +25,35 @@ ghTasksBase = ghBase + 'labels/type%3A%20'
 ghExamplesBase = ghBase + 'tree/master/'
 
 def profileHeader(profileName, schemaType, schemaVersion, isBioschemasType, profileDescription, version, status, groupName, hasLiveDeploy):
+    """
+    Generates the YAML for the header section of the profile.
+
+    Parameters
+    ----------
+    profileName : str
+        Name of the profile
+    schemaType : str
+        Name of the Schema.org type over which the profile is defined
+    schemaVersion : str
+        Version number of Schema.org vocabulary used
+    isBioschemasType : bool
+        Whether we are defining a new type in the Bioschemas namespace
+    profileDescription : str
+        Description string for the type
+    version : str
+        Version number of the profile
+    status : str
+        Status of the profile which takes a constant of STATUS_DRAFT, STATUS_RELEASE, STATUS_DEPRECATED
+    groupName : str
+        The identifying name of the Bioschemas Working Group
+    hasLiveDeploy : bool
+        Indicates whether there are live deployments available for the profile
+
+    RETURNS
+    -------
+    dict
+        Dictionary of terms used for profile YAML display on website
+    """
     header_properties = {}
     header_properties['name'] = profileName
     header_properties['official_type'] = schemaType
