@@ -16,14 +16,17 @@ __copyright__ = """© 2020 Heriot-Watt University, UK
 __license__ = "MIT" # https://spdx.org/licenses/MIT
 
 from collections import OrderedDict
+from typing import TypeVar 
+from string import Template
 
 import rdflib
 from rdflib import Dataset, URIRef
+from rdflib.term import Identifier
 # rdflib knows about some namespaces, like FOAF
 from rdflib.namespace import RDF, RDFS, Namespace
+
 SCHEMA = Namespace("http://schema.org/")
 
-from string import Template
 import logging
 from ._logging import LOG_TRACE
 
@@ -32,72 +35,130 @@ _logger = logging.getLogger(__name__)
 # https://schema.org/docs/developers.html
 SCHEMA_URL=Template("https://schema.org/version/${version}/schemaorg-all-http.jsonld")
 
-def load_schemaorg(schemaver="latest"):
-    url = SCHEMA_URL.substitute(version=schemaver)
-    _logger.info("Loading %s as RDF Dataset" % url)
-    d = rdflib.Dataset()
-    result = d.parse(url, format="json-ld")
-    _logger.info("Loaded %s quads" % len(d))
-    if _logger.isEnabledFor(LOG_TRACE):
-        _logger.log(LOG_TRACE, d.serialize(format="trig").decode("utf-8"))
-    return result
+SchemaType = TypeVar("SchemaType")
+SchemaProperty = TypeVar("SchemaProperty")
+SchemaClass = TypeVar("SchemaClass")
 
-class SchemaType(Type):
-    _uri2type = {}
+
+class SchemaType(type):
+    _uri2type = {} 
+    _dataset = None
+    _graph = None
+
+    def __repr__(self):
+        return "<%s>" % self.uri
+
+    def __str__(self):
+        return self.uri
 
     @classmethod
-    def _as_type(cls, uri: URIRef) -> SchemaType:
+    def dataset(cls, schemaver="latest"):
+        if cls._dataset is not None:
+            return cls._dataset
+        url = SCHEMA_URL.substitute(version=schemaver)
+        _logger.info("Loading %s as RDF Dataset" % url)
+        d = rdflib.Dataset()
+        result = d.parse(url, format="json-ld")
+        _logger.info("Loaded %s quads" % len(d))
+        if _logger.isEnabledFor(LOG_TRACE):
+            _logger.log(LOG_TRACE, d.serialize(format="trig").decode("utf-8"))
+        # NOTE: Store it in the submetaclass, e.g. SchemaClass or SchemaProperty
+        cls._dataset = d
+        return cls._dataset
+
+    @classmethod
+    def graph(cls):
+        """Find schema.org named graph"""
+        if cls._graph is not None:
+            return cls._graph
+        for (s,p,o,g) in cls.dataset().quads([SCHEMA.Thing,RDF.type,RDFS.Class,None]):
+            cls._graph = cls.dataset().graph(g)
+        return cls._graph
+
+    @classmethod
+    def version(cls):
+        return cls.graph().identifier.replace("http://schema.org/#", "")
+
+    @classmethod
+    def as_type(cls, uri: URIRef) -> SchemaType:
         if uri not in cls._uri2type:
             # create same subclass (SchemaProperty or SchemaClass)
-            cls._uri2type[uri] = cls(uri, cls.dataset)
+            cls._uri2type[uri] = cls._new(uri)
         return cls._uri2type[uri]
-    
-    def __init__(self, uri: URIRef, dataset: Dataset)
-        self.uri = uri
-        self.dataset = dataset
-        self._uri2type[uri] = self # self-register
-        bases = list(cls.supertypes())
-        super().__init__(uri, bases, {})
+
+    @classmethod
+    def _new(cls, uri: URIRef) -> SchemaType:
+        cls._uri2type[uri] = None # pre-reserve to avoid loops
+        _logger.debug("Creating %s for %s" % (cls,uri))
+        uri = uri
+        bases = tuple(cls._supertypes(uri))
+        _logger.debug("..with bases %s" % (bases,))
+        C = cls(uri, bases, {"uri": uri})
+        cls._uri2type[uri] = C # self-register
+        _logger.debug("Mapped %s to %s" % (uri, C))
+        return C
 
     # abstract
-    def supertypes(self):
+    @classmethod
+    def _supertypes(cls, uri: URIRef):
         return []
+
+    @property
+    def supertypes(self):
+        return list(self._supertypes(self.uri))
+
+    @property
+    def ancestors(self):
+        return [p for p in self.mro() if isinstance(p, SchemaType)]
+
+    @property
     def label(self):
-        for label in self.dataset.objects(self.uri, RDFS.label):
-            return label
+        for label in self.graph().objects(self.uri, RDFS.label):
+            return label # usually only one!
+        return None
+
+    @property            
     def comment(self):
-        for comment in self.dataset.objects(self.uri, RDFS.comment):
+        for comment in self.graph().objects(self.uri, RDFS.comment):
             return comment
+        return None
 
 class SchemaProperty(SchemaType):
-    def supertypes(self):
-        return self.dataset.objects(self.uri, RDFS.subPropertyOf)
+    @classmethod    
+    def _supertypes(self, uri: URIRef):
+        return map(SchemaProperty.as_type, 
+            self.graph().objects(uri, RDFS.subPropertyOf))
     
-    def domainIncludes(self):
-        return map(SchemaClass._as_type, 
-            self.dataset.objects(self.uri, RDFS.domainIncludes))        
+    @property
+    def domainIncludes(self) -> SchemaClass:
+        return [SchemaClass.as_type(o) for o in
+            self.graph().objects(self.uri, SCHEMA.domainIncludes)]
     
-    def rangeIncludes(self):
-        return map(SchemaClass._as_type, 
-            self.dataset.objects(self.uri, RDFS.rangeIncludes))        
+    @property
+    def rangeIncludes(self) -> SchemaClass:
+        return [SchemaClass.as_type(o) for o in 
+            self.graph().objects(self.uri, SCHEMA.rangeIncludes)]
 
-class SchemaClass(Type):
-    def supertypes(self):
-        return map(SchemaClass._as_type, 
-            self.dataset.objects(self.uri, RDFS.subClassOf))
+class SchemaClass(SchemaType):        
 
-    def propertiesIncludingAsDomain(self):
-        return map(SchemaProperty._as_type, 
-            self.dataset.subjects(self.uri, SCHEMA.domainIncludes))
+    @classmethod
+    def _supertypes(cls, uri: URIRef):
+        return map(SchemaClass.as_type, 
+            cls.graph().objects(uri, RDFS.subClassOf))
 
-    def propertiesIncludingAsRange(self):
-        return map(SchemaProperty._as_type, 
-            self.dataset.subjects(self.uri, SCHEMA.rangeIncludes))
+    def includedInDomainOf(self) -> SchemaProperty:
+        return [SchemaProperty.as_type(s) for s in
+            self.graph().subjects(SCHEMA.domainIncludes, self.uri)]
 
-def find_properties(schematype, schemaver="latest"):    
-    s = SchemaType(SCHEMA[schematype], load_schemaorg(schemaver))
+    def includedInRangeOf(self) -> SchemaProperty:
+        return [SchemaProperty.as_type(s) for s in 
+            self.graph().subjects(SCHEMA.rangeIncludes, self.uri)]
+
+def find_properties(schematype):
+    if not isinstance(schematype, Identifier):
+         schematype = SCHEMA[schematype]
+    s = SchemaClass.as_type(schematype)
     type_properties = OrderedDict()
-    for schematype in s.mro():
-        type_properties[schematype] = schematype.propertiesIncludingAsDomain()
+    for schematype in s.ancestors:
+        type_properties[schematype] = list(schematype.includedInDomainOf())
     return type_properties
-
