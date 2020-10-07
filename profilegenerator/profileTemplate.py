@@ -33,6 +33,7 @@ def profileHeader(profileName, schemaType, isBioschemasType, profileDescription,
     else:
         base_url = SCHEMA_URL
     header_properties['type_base_url'] = base_url
+    # TODO: Schema version
     header_properties['description'] = profileDescription
     header_properties['version'] = version
     header_properties['version_date'] = datetime.datetime.utcnow().strftime('%Y%m%dT%H%M%S')
