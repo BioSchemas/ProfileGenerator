@@ -80,7 +80,7 @@ def generate(schematype, profileName=None, schemaver="latest", groupName=None, d
     profileName = profileName or schematype
     groupName = groupName or profileName
     
-    props = find_properties(schematype, profileName, schemaver)
+    props = find_properties(schematype, schemaver)
     
     ## TODO: Make yaml, template etc.
     _logger.info("Profile: %s" % profileName)
