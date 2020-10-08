@@ -24,11 +24,12 @@ ghBase = 'https://github.com/BioSchemas/specifications/'
 ghTasksBase = ghBase + 'labels/type%3A%20'
 ghExamplesBase = ghBase + 'tree/master/'
 
-def profileHeader(profileName, schemaType, isBioschemasType, profileDescription, version, status, groupName, hasLiveDeploy):
+def profileHeader(profileName, schemaType, schemaVersion, isBioschemasType, profileDescription, version, status, groupName, hasLiveDeploy):
     header_properties = {}
     header_properties['layout'] = "profile-display"
     header_properties['name'] = profileName
     header_properties['official_type'] = schemaType
+    header_properties['schema_version'] = schemaVersion
     if isBioschemasType:
         base_url = BIOSCHEMAS_URL
     else:

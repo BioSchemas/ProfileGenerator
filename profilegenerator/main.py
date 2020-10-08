@@ -114,7 +114,8 @@ def generate(schematype, profileName=None, groupName=None, description=None):
     
     ## TODO: Make yaml, template etc.
     _logger.info("Profile: %s" % profileName)
-    _logger.info("Based on schema.org %s version %s" % (typ, schemaorg.get_version()))
+    schemaver = schemaorg.get_version()
+    _logger.info("Based on schema.org %s version %s" % (typ, schemaver))
     mappingProperies = []
     for (s_type, s_props) in props.items():
         _logger.debug("Type: %s " % s_type)
@@ -139,7 +140,7 @@ def generate(schematype, profileName=None, groupName=None, description=None):
     version = "0.1"
     status = STATUS_DRAFT
     profile = '---\n'
-    profileDict = profileHeader(profileName, schematype, False, description, version, status, groupName, False)
+    profileDict = profileHeader(profileName, schematype, schemaver, False, description, version, status, groupName, False)
     profileDict['mapping'] = mappingProperies
     profile += yaml.dump(profileDict, default_flow_style=False, default_style='"', sort_keys=False)
     profile += '---\n'
