@@ -28,7 +28,7 @@ If you don't have Conda, or use virtualenv or similar, then `setup.py` lists the
 
 ### Schema.org examples
 
-You can also look auto-generated example for a particular schemaorg property:
+You can show auto-generated examples for a particular schema.org property:
 
 
 ```shell
