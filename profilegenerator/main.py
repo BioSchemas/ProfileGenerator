@@ -23,7 +23,7 @@ import argparse
 from enum import IntEnum
 
 from ._version import __version__
-from ._logging import LOG_TRACE
+from ._logging import LOG_TRACE, LOG_ANNOUNCE
 from .schemaorg import SCHEMA, SchemaProperty, SchemaClass
 from . import schemaorg
 from .profileTemplate import profileHeader, profileProperty, profileType, profileFooter
@@ -86,6 +86,12 @@ def parse_args(args=None):
 
     parser.add_argument('--version', action='version', version='%(prog)s ' + __version__)
 
+    parser.add_argument('--force', '-f', action="store_true",
+        help="Do not ask before overwriting profile output file")
+
+    parser.add_argument('--output', '-o', metavar="OUTPUT", default=None,
+        help="Set profile output file, or `-` for stdout (default: PROFILE-0.1-DRAFT.html)")
+
     parser.add_argument('-v', '--verbose', action='count', default=0,
         help='Increase verbosity level. Repeat -v for debug and trace logs')
 
@@ -102,7 +108,7 @@ def parse_args(args=None):
 
 
 
-def generate(schematype, profileName=None, groupName=None, description=None):
+def generate(schematype, profileName=None, groupName=None, description=None, filename=None, overwrite=False):
     """Generate bioschemas profile for a given schematype"""
     assert schematype
     profileName = profileName or schematype
@@ -134,6 +140,8 @@ def generate(schematype, profileName=None, groupName=None, description=None):
             mappingProperies.append(profileProperty(propertyName, expectedTypes, schemaDescription, 
                 bsDescription, marginality, cardinality, controlledVocabs, example))
 
+    superclasses = typ.ancestors
+    superclasses.reverse()
     description = description or typ.comment or profileName 
     # TODO: Type hierarchy as dict with namespace and typename
     version = "0.1"
@@ -141,16 +149,18 @@ def generate(schematype, profileName=None, groupName=None, description=None):
     profile = '---\n'
     profileDict = profileHeader(profileName, schematype, schemaver, False, description, version, status, groupName, False)
     profileDict['mapping'] = mappingProperies
+    profileDict['hierarchy'] = profileType(superclasses)
     profile += yaml.dump(profileDict, default_flow_style=False, default_style='"', sort_keys=False)
     profile += '---\n'
     profile += profileFooter()
-    writeToFile(profileName, version, status, profile)
+    writeToFile(profileName, version, status, profile, filename, overwrite)
     # print(profile)
 
-def writeToFile(profileName, version, status, profile):
-    filename = profileName+'-'+version+'-'+status+'.html'
-    if (os.path.exists(filename)):
-        _logger.warning("File already exists: %s" % filename)
+def writeToFile(profileName, version, status, profile, filename, overwrite):
+    if not filename:
+        filename = profileName+'-'+version+'-'+status+'.html'
+    if (os.path.exists(filename) and not overwrite):
+        _logger.warning("File already exists: %s" % os.path.abspath(filename))
         while 1:
             question = 'Overwrite '+ filename + ' (Y/n): '
             sys.stderr.write(question)
@@ -162,10 +172,15 @@ def writeToFile(profileName, version, status, profile):
                 return
             else:
                 sys.stderr.write("Please respond with 'y' or 'n'.\n")
-    fo = open(filename, 'w')
+    if filename == "-":
+        fo = sys.stdout
+    else:
+        fo = open(filename, 'w')
     fo.write(profile)
     fo.close()
+    _logger.log(LOG_ANNOUNCE, "Generated %s" % os.path.abspath(filename))
 
+# LOG_ANNOUNCE is above logging.WARNING and always showed
 LOG_LEVELS = [logging.WARNING, logging.INFO, logging.DEBUG, LOG_TRACE]
 
 def main(args=None):
@@ -180,7 +195,7 @@ def main(args=None):
         profileName = "profile" in args and args.profile or schematype
         groupName = args.group or profileName
         schemaorg.set_version(args.schemaver)
-        return generate(schematype, profileName, groupName, args.description)
+        return generate(schematype, profileName, groupName, args.description, args.output, args.force)
     except OSError as e:
         _logger.fatal(e)
         return Status.IO_ERROR

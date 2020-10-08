@@ -19,3 +19,6 @@ __license__ = "MIT" # https://spdx.org/licenses/MIT
 import logging
 
 LOG_TRACE = int(logging.DEBUG / 2) # 5
+LOG_ANNOUNCE = logging.WARNING + 1 # 31
+logging.addLevelName(LOG_TRACE, "TRACE")
+logging.addLevelName(LOG_ANNOUNCE, "ANNOUNCE")
