@@ -95,6 +95,8 @@ class SchemaType(type):
     @classmethod
     def as_type(cls, uri: URIRef) -> SchemaType:
         if uri not in cls._uri2type:
+            if not cls._exists(uri):
+                raise ValueError("%s is not a known %s" % (uri, cls))
             # create same subclass (SchemaProperty or SchemaClass)
             cls._uri2type[uri] = cls._new(uri)
         return cls._uri2type[uri]
@@ -115,6 +117,11 @@ class SchemaType(type):
     @classmethod
     def _supertypes(cls, uri: URIRef):
         return []
+
+    @classmethod
+    def _exists(cls, uri: URIRef) -> bool:
+        # Accept any non-schema.org terms like rdf:type
+        return not uri.startswith("http://schema.org/")
 
     @property
     def supertypes(self):
@@ -137,6 +144,11 @@ class SchemaType(type):
         return None
 
 class SchemaProperty(SchemaType):
+    @classmethod
+    def _exists(cls, uri: URIRef) -> bool:
+        _logger.debug("Checking property %s" % uri)
+        return super()._exists(uri) or (uri, RDF.type, RDF.Property) in cls.graph()
+
     @classmethod    
     def _supertypes(self, uri: URIRef):
         return map(SchemaProperty.as_type, 
@@ -152,7 +164,11 @@ class SchemaProperty(SchemaType):
         return [SchemaClass.as_type(o) for o in 
             self.graph().objects(self.uri, SCHEMA.rangeIncludes)]
 
-class SchemaClass(SchemaType):        
+class SchemaClass(SchemaType):
+    @classmethod
+    def _exists(cls, uri: URIRef) -> bool:
+        return super()._exists(uri) or (uri, RDF.type, RDFS.Class) in cls.graph()
+
     @classmethod
     def _supertypes(cls, uri: URIRef):
         return map(SchemaClass.as_type, 
