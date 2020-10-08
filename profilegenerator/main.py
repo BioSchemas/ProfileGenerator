@@ -26,7 +26,7 @@ from ._version import __version__
 from ._logging import LOG_TRACE
 from .schemaorg import SCHEMA, SchemaProperty, SchemaClass
 from . import schemaorg
-from .profileTemplate import profileHeader, profileProperty, profileFooter
+from .profileTemplate import profileHeader, profileProperty, profileType, profileFooter
 from .profileConstants import *
 
 import yaml
@@ -147,11 +147,11 @@ def generate(schematype, profileName=None, groupName=None, description=None):
         _logger.debug("Properties: %s", s_props)        
         for prop in s_props:
             propertyName = str(prop)
-            expectedTypes = [str(expected) for expected in prop.rangeIncludes]
+            expectedTypes = profileType(prop.rangeIncludes)
             schemaDescription = prop.comment or prop.label or str(prop)
             bsDescription = 'TODO: Bioschemas description'
-            marginality = "TODO"
-            cardinality = "TODO"
+            marginality = MARGINALITY_UNSPECIFIED
+            cardinality = ""
             controlledVocabs = ""
             example = make_example(typ, prop, 
                 prop.rangeIncludes and prop.rangeIncludes[0])

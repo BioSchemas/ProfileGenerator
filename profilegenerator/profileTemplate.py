@@ -19,13 +19,14 @@ import datetime
 import urllib.parse
 from .profileConstants import *
 
-footerString = '{% include profileHTML.html %}'
+footerString = ''
 ghBase = 'https://github.com/BioSchemas/specifications/'
 ghTasksBase = ghBase + 'labels/type%3A%20'
 ghExamplesBase = ghBase + 'tree/master/'
 
 def profileHeader(profileName, schemaType, isBioschemasType, profileDescription, version, status, groupName, hasLiveDeploy):
     header_properties = {}
+    header_properties['layout'] = "profile-display"
     header_properties['name'] = profileName
     header_properties['official_type'] = schemaType
     if isBioschemasType:
@@ -60,6 +61,15 @@ def profileProperty(propertyName, expectedTypes, schemaDescription, bsDescriptio
     propertyDict['controlled_vocab'] = controlledVocabs
     propertyDict['example'] = example
     return propertyDict
+
+def profileType(expectedTypes):
+    typesDict = []
+    for expected in expectedTypes:
+        typeProperties = {}
+        typeProperties['type_name'] = str(expected)
+        typeProperties['type_base_url'] = SCHEMA_URL
+        typesDict.append(typeProperties)
+    return typesDict
 
 def profileFooter():
     return(footerString)
