@@ -42,8 +42,8 @@ SchemaClass = TypeVar("SchemaClass")
 
 class SchemaType(type):
     _uri2type = {} 
-    _dataset = None
-    _graph = None
+    _dataset = rdflib.Dataset()
+    _graph = rdflib.Dataset()
 
     def __repr__(self):
         return "<%s>" % self.uri
@@ -55,8 +55,8 @@ class SchemaType(type):
     def _flush(cls):
         # Always set in SchemaType
         SchemaType._uri2type = {} 
-        SchemaType._dataset = None
-        SchemaType._graph = None      
+        SchemaType._dataset = rdflib.Dataset()
+        SchemaType._graph = rdflib.Graph()      
 
     #abstract
     @property
@@ -65,7 +65,7 @@ class SchemaType(type):
 
     @classmethod
     def dataset(cls, schemaver="latest"):
-        if cls._dataset is not None:
+        if cls._dataset:
             return cls._dataset
         url = SCHEMA_URL.substitute(version=schemaver)
         _logger.info("Loading %s as RDF Dataset" % url)
@@ -74,17 +74,18 @@ class SchemaType(type):
         _logger.info("Loaded %s quads" % len(d))
         if _logger.isEnabledFor(LOG_TRACE):
             _logger.log(LOG_TRACE, d.serialize(format="trig").decode("utf-8"))
-        # NOTE: Store it in the submetaclass, e.g. SchemaClass or SchemaProperty
-        cls._dataset = d
+        # NOTE: Store it in this parent class to support _reset
+        SchemaType._dataset = d
         return cls._dataset
 
     @classmethod
     def graph(cls):
         """Find schema.org named graph"""
-        if cls._graph is not None:
+        if cls._graph:
             return cls._graph
         for (s,p,o,g) in cls.dataset().quads([SCHEMA.Thing,RDF.type,RDFS.Class,None]):
-            cls._graph = cls.dataset().graph(g)
+            # Found the named graph of schema.org declarations
+            SchemaType._graph = cls.dataset().graph(g)
         return cls._graph
 
     @classmethod
