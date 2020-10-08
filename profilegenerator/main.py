@@ -143,13 +143,12 @@ def generate(schematype, profileName=None, groupName=None, description=None, fil
     superclasses = typ.ancestors
     superclasses.reverse()
     description = description or typ.comment or profileName 
-    # TODO: Type hierarchy as dict with namespace and typename
     version = "0.1"
     status = STATUS_DRAFT
     profile = '---\n'
     profileDict = profileHeader(profileName, schematype, schemaver, False, description, version, status, groupName, False)
-    profileDict['mapping'] = mappingProperies
     profileDict['hierarchy'] = profileType(superclasses)
+    profileDict['mapping'] = mappingProperies
     profile += yaml.dump(profileDict, default_flow_style=False, default_style='"', sort_keys=False)
     profile += '---\n'
     profile += profileFooter()
