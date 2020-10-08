@@ -60,7 +60,8 @@ setup(
     install_requires=[required],
     test_suite='test',
     entry_points={
-        'console_scripts': ["profilegen=profilegenerator.main:main"]
+        'console_scripts': ["bioschema-profilegen=profilegenerator.main:main",
+                "schemaorg-example=profilegenerator.schemaorg:main"]
     },
     classifiers=[
         'Operating System :: OS Independent',

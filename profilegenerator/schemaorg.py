@@ -18,6 +18,7 @@ __license__ = "MIT" # https://spdx.org/licenses/MIT
 from collections import OrderedDict
 from typing import TypeVar 
 from string import Template
+import sys
 
 import rdflib
 from rdflib import Dataset, URIRef
@@ -155,10 +156,24 @@ class SchemaProperty(SchemaType):
             self.graph().objects(uri, RDFS.subPropertyOf))
     
     @property
-    def domainIncludes(self) -> SchemaClass:
+    def domainIncludes(self):
         return [SchemaClass.as_type(o) for o in
             self.graph().objects(self.uri, SCHEMA.domainIncludes)]
-    
+
+    def domainIncludesWithSuper(self):
+        classes = OrderedDict()
+        for p in self.ancestors: # use mro order
+            for k in p.domainIncludes:
+                classes[k] = k
+        return list(classes.keys())
+
+    def rangeIncludesWithSuper(self):
+        classes = OrderedDict()
+        for p in self.ancestors: # use mro order
+            for k in p.rangeIncludes:
+                classes[k] = k
+        return list(classes.keys())
+
     @property
     def rangeIncludes(self) -> SchemaClass:
         return [SchemaClass.as_type(o) for o in 
@@ -174,13 +189,29 @@ class SchemaClass(SchemaType):
         return map(SchemaClass.as_type, 
             cls.graph().objects(uri, RDFS.subClassOf))
 
-    def includedInDomainOf(self) -> SchemaProperty:
+    @property
+    def includedInDomainOf(self):
         return [SchemaProperty.as_type(s) for s in
             self.graph().subjects(SCHEMA.domainIncludes, self.uri)]
 
+    def includedInDomainOfWithSuper(self):
+        props = OrderedDict()
+        for k in self.ancestors: # use mro order
+            for p in k.includedInDomainOf:
+                props[p] = p
+        return list(props.keys())
+
+    @property
     def includedInRangeOf(self) -> SchemaProperty:
         return [SchemaProperty.as_type(s) for s in 
             self.graph().subjects(SCHEMA.rangeIncludes, self.uri)]
+
+    def includedInRangeOfWithSuper(self):
+        props = OrderedDict()
+        for k in self.ancestors: # use mro order
+            for p in k.includedInRangeOf:
+                props[p] = p
+        return list(props.keys())
 
 def find_class(schematype):
     if not isinstance(schematype, Identifier):
@@ -196,7 +227,7 @@ def find_properties(schematype):
     s = find_class(schematype)
     type_properties = OrderedDict()
     for schematype in s.ancestors:
-        type_properties[schematype] = list(schematype.includedInDomainOf())
+        type_properties[schematype] = schematype.includedInDomainOf
     return type_properties
 
 def get_version():
@@ -249,3 +280,23 @@ def make_example(s_type: SchemaClass, prop: SchemaProperty,
 }''' % (example_id, s_type, prop, exampleValue)
     _logger.debug(ex)
     return ex
+
+def main(args=None):
+    """Show example for a particular thing"""
+    if not args:
+        args = sys.argv[1:]
+    if not args or "-h" in args or "--help" in args:
+        print("schemaorg-example [TYPE-or-PROPERTY]")
+        return
+    term = args[0]
+    if term[0] == term[0].upper():
+        k = find_class(term)
+        p = k.includedInDomainOfWithSuper()[0]
+        e = p.rangeIncludesWithSuper()[0]
+        ex = make_example(k,p,e)
+        print(ex)
+
+    else:
+        k = find_property(term)        
+        ex = make_example(k.domainIncludesWithSuper()[0], k, k.rangeIncludesWithSuper()[0])
+        print(ex)
