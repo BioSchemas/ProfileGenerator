@@ -189,3 +189,47 @@ def get_version():
 def set_version(version):
     SchemaType._flush()
     SchemaType.dataset(version)
+
+
+def make_example(s_type: SchemaClass, prop: SchemaProperty, 
+                 expectedType: SchemaClass) -> str:
+    example_id = "https://example.com/%s/123" % str(s_type).lower()
+    _logger.info("Making example for [a %s] %s [a %s]" % (s_type, prop, expectedType))
+    if not expectedType or issubclass(expectedType, find_class(SCHEMA.Text)):
+        # Text - we do not know what it looks like; just use property name
+        exampleValue = '"example %s"' % str(prop).lower()
+    # Note: We'll only inspect the FIRST type in range
+    elif issubclass(expectedType, find_class(SCHEMA.URL)):
+        # Some identifier - possibly related to property name
+        exampleValue = '"https://purl.example.org/%s-345"' % str(prop).lower()
+    elif issubclass(expectedType, find_class(SCHEMA.Person)):
+        # Specified type of object
+        exampleValue = '{"@id": "https://orcid.org/0000-0002-1825-0097", "@type": "%s"}' % (
+            str(expectedType))            
+    elif issubclass(expectedType, find_class(SCHEMA.Thing)):
+        # Specified type of object
+        exampleValue = '{"@id": "https://example.com/%s/345", "@type": "%s"}' % (
+            str(expectedType).lower(), str(expectedType))            
+    elif expectedType.uri == SCHEMA.Thing:
+        # Unknown/any type - generic object
+        exampleValue = '{"@id": "https://example.org/345"}'
+    elif issubclass(expectedType, find_class(SCHEMA.DateTime)):
+        exampleValue = '"2020-10-08T17:33:08+01:00"'
+    elif issubclass(expectedType, find_class(SCHEMA.Date)):
+        exampleValue = '"2020-10-08"'
+    elif issubclass(expectedType, find_class(SCHEMA.Time)):
+        exampleValue = '"17:33:08"'
+    elif issubclass(expectedType, find_class(SCHEMA.Boolean)):
+        exampleValue = 'false'
+    elif issubclass(expectedType, find_class(SCHEMA.Number)):
+        exampleValue = '123'
+    else:
+        # Probably a datatype, fallback to empty string
+        exampleValue = '""'
+    ex = '''{ "@context": "https://schema.org/",
+  "@id": "%s",
+  "@type": "%s",
+  "%s": %s
+}''' % (example_id, s_type, prop, exampleValue)
+    _logger.debug(ex)
+    return ex
