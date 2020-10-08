@@ -52,8 +52,8 @@ def profileProperty(propertyName, expectedTypes, schemaDescription, bsDescriptio
     propertyDict['property'] = propertyName
     propertyDict['expected_types'] = expectedTypes
     propertyDict['description'] = schemaDescription
-    propertyDict['type'] = None
-    propertyDict['type_url'] = None
+    propertyDict['type'] = ""
+    propertyDict['type_url'] = ""
     propertyDict['bsc_description'] = bsDescription
     propertyDict['marginality'] = marginality
     propertyDict['cardinality'] = cardinality
