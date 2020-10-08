@@ -54,7 +54,7 @@ def _str_presenter(dumper, data):
         style='|'
     elif len(data) > 76:
         style='>'
-    elif '"' in data or ' ' in or ":" in data:
+    elif '"' in data or ' ' in data or ":" in data:
         style='"'
     elif "'" in data:
         style="'"
@@ -114,11 +114,13 @@ def make_example(s_type: SchemaClass, prop: SchemaProperty,
     elif expectedType.uri == SCHEMA.Thing:
         # Unknown/any type - generic object
         exampleValue = '{"@id": "https://example.org/345"}'
-    else:
+    elif SCHEMA.Thing in expectedType.ancestors:
         # Specified type of object
         exampleValue = '{"@id": "https://example.com/%s/345", "@type": "%s"}' % (
             str(expectedType).lower(), str(expectedType))
-    
+    else:
+        # Probably a datatype, fallback to empty string
+        exampleValue = '""'
 
     return '''{ "@context": "https://schema.org/",
   "@id": "%s",
@@ -179,7 +181,7 @@ def writeToFile(profileName, version, status, profile):
         _logger.warning("File already exists: %s" % filename)
         while 1:
             question = 'Overwrite '+ filename + ' (Y/n): '
-            sys.stdout.write(question)
+            sys.stderr.write(question)
             choice = input().lower()
             if choice[:1] == 'y' or choice[:1] == '':
                 break
@@ -187,7 +189,7 @@ def writeToFile(profileName, version, status, profile):
                 _logger.fatal("File %s already exists and not overwritten." % filename)
                 return
             else:
-                sys.stdout.write("Please respond with 'y' or 'n'.\n")
+                sys.stderr.write("Please respond with 'y' or 'n'.\n")
     fo = open(filename, 'w')
     fo.write(profile)
     fo.close()
