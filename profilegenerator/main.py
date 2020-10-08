@@ -54,7 +54,7 @@ def _str_presenter(dumper, data):
         style='|'
     elif len(data) > 76:
         style='>'
-    elif '"' in data or ' ' in data:
+    elif '"' in data or ' ' in or ":" in data:
         style='"'
     elif "'" in data:
         style="'"
@@ -112,7 +112,7 @@ def make_example(s_type: SchemaClass, prop: SchemaProperty,
         # Some identifier - possibly related to property name
         exampleValue = '"https://purl.example.org/%s-345"' % str(prop).lower()
     elif expectedType.uri == SCHEMA.Thing:
-        # Unknown/any type - generic URI
+        # Unknown/any type - generic object
         exampleValue = '{"@id": "https://example.org/345"}'
     else:
         # Specified type of object
