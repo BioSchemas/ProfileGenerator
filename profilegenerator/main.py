@@ -127,7 +127,7 @@ def generate(schematype, profileName=None, groupName=None, description=None):
             marginality = "TODO"
             cardinality = "TODO"
             controlledVocabs = ""
-            example = schemaorg.make_example(typ, prop, 
+            example = schemaorg.make_example_property(typ, prop, 
                 prop.rangeIncludes and prop.rangeIncludes[0])
             # TODO: record which s_type this property belongs to
             mappingProperies.append(profileProperty(propertyName, expectedTypes, schemaDescription, 

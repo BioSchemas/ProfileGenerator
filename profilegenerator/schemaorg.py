@@ -16,7 +16,7 @@ __copyright__ = """© 2020 Heriot-Watt University, UK
 __license__ = "MIT" # https://spdx.org/licenses/MIT
 
 from collections import OrderedDict
-from typing import TypeVar 
+from typing import TypeVar, List
 from string import Template
 import sys
 
@@ -187,12 +187,14 @@ class SchemaClass(SchemaType):
     @classmethod
     def _supertypes(cls, uri: URIRef):
         return map(SchemaClass.as_type, 
-            cls.graph().objects(uri, RDFS.subClassOf))
+            cls.graph().objects(uri, RDFS.subClassOf)) 
 
     @property
     def includedInDomainOf(self):
-        return [SchemaProperty.as_type(s) for s in
+        a = [SchemaProperty.as_type(s) for s in
             self.graph().subjects(SCHEMA.domainIncludes, self.uri)]
+        a.sort(key=str)
+        return a
 
     def includedInDomainOfWithSuper(self):
         props = OrderedDict()
@@ -238,10 +240,9 @@ def set_version(version):
     SchemaType.dataset(version)
 
 
-def make_example(s_type: SchemaClass, prop: SchemaProperty, 
+def make_example_value(s_type: SchemaClass, prop: SchemaProperty, 
                  expectedType: SchemaClass) -> str:
     example_id = "https://example.com/%s/123" % str(s_type).lower()
-    _logger.info("Making example for [a %s] %s [a %s]" % (s_type, prop, expectedType))
     if not expectedType: 
         exampleValue = '""'
     # Note: We'll only inspect the FIRST type in range
@@ -278,11 +279,36 @@ def make_example(s_type: SchemaClass, prop: SchemaProperty,
     else:
         # Probably a datatype, fallback to empty string
         exampleValue = '""'
+    return exampleValue
+
+def make_example_property(s_type: SchemaClass, prop: SchemaProperty, 
+                 expectedType: SchemaClass) -> str:
+    example_id = "https://example.com/%s/123" % str(s_type).lower()
+    _logger.info("Making example for [a %s] %s [a %s]" % (s_type, prop, expectedType))
+    exampleValue = make_example_value(s_type, prop, expectedType)
     ex = '''{ "@context": "https://schema.org/",
   "@id": "%s",
   "@type": "%s",
   "%s": %s
 }''' % (example_id, s_type, prop, exampleValue)
+    _logger.debug(ex)
+    return ex
+
+def _first(iterable):
+    for x in iterable:
+        return x
+
+def make_example_class(s_type: SchemaClass, properties: List[SchemaProperty]) -> str:
+    example_id = "https://example.com/%s/123" % str(s_type).lower()
+    _logger.info("Making example for [a %s] *" % s_type)    
+    props = ('"%s": %s' % 
+        (p, make_example_value(s_type, p, _first(p.rangeIncludesWithSuper())))
+        for p in properties)
+    ex = '''{ "@context": "https://schema.org/",
+  "@id": "%s",
+  "@type": "%s",
+  %s
+}''' % (example_id, s_type, ",\n  ".join(props))
     _logger.debug(ex)
     return ex
 
@@ -294,16 +320,13 @@ def main(args=None):
         print("schemaorg-example [TYPE-or-PROPERTY]")
         return
     term = args[0]
-    if term[0] == term[0].upper():
+    if term[0] == term[0].upper(): # assume is Class
         k = find_class(term)
-        for p in k.includedInDomainOfWithSuper():        
-            for e in p.rangeIncludesWithSuper():
-                ex = make_example(k,p,e)
-                print(ex)
-
-    else:
-        p = find_property(term)
+        ex = make_example_class(k, k.includedInDomainOfWithSuper())
+        print(ex)
+    else: # assume is property
+        p = find_property(term) 
         for d in p.domainIncludesWithSuper():
             for r in p.rangeIncludesWithSuper():
-                ex = make_example(d,p,r)
+                ex = make_example_property(d,p,r)
                 print(ex)
