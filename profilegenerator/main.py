@@ -141,7 +141,6 @@ def generate(schematype, profileName=None, groupName=None, description=None):
     profile = '---\n'
     profileDict = profileHeader(profileName, schematype, False, description, version, status, groupName, False)
     profileDict['mapping'] = mappingProperies
-    _logger.debug(profileDict)
     profile += yaml.dump(profileDict, default_flow_style=False, default_style='"', sort_keys=False)
     profile += '---\n'
     profile += profileFooter()
