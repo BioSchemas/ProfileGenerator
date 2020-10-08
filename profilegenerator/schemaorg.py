@@ -242,9 +242,8 @@ def make_example(s_type: SchemaClass, prop: SchemaProperty,
                  expectedType: SchemaClass) -> str:
     example_id = "https://example.com/%s/123" % str(s_type).lower()
     _logger.info("Making example for [a %s] %s [a %s]" % (s_type, prop, expectedType))
-    if not expectedType or issubclass(expectedType, find_class(SCHEMA.Text)):
-        # Text - we do not know what it looks like; just use property name
-        exampleValue = '"example %s"' % str(prop).lower()
+    if not expectedType: 
+        exampleValue = '""'
     # Note: We'll only inspect the FIRST type in range
     elif issubclass(expectedType, find_class(SCHEMA.URL)):
         # Some identifier - possibly related to property name
@@ -253,6 +252,10 @@ def make_example(s_type: SchemaClass, prop: SchemaProperty,
         # Specified type of object
         exampleValue = '{"@id": "https://orcid.org/0000-0002-1825-0097", "@type": "%s"}' % (
             str(expectedType))            
+    elif issubclass(expectedType, find_class(SCHEMA.Intangible)):
+        # Usually anonymous, e.g. PropertyValue
+        exampleValue = '{"@type": "%s"}' % (
+            str(expectedType))
     elif issubclass(expectedType, find_class(SCHEMA.Thing)):
         # Specified type of object
         exampleValue = '{"@id": "https://example.com/%s/345", "@type": "%s"}' % (
@@ -270,6 +273,8 @@ def make_example(s_type: SchemaClass, prop: SchemaProperty,
         exampleValue = 'false'
     elif issubclass(expectedType, find_class(SCHEMA.Number)):
         exampleValue = '123'
+    elif issubclass(expectedType, find_class(SCHEMA.Text)):
+        exampleValue = '"example %s"' % str(prop).lower()
     else:
         # Probably a datatype, fallback to empty string
         exampleValue = '""'
