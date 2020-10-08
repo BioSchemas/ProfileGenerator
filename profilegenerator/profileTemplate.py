@@ -121,6 +121,7 @@ def profileProperty(propertyName, expectedTypes, schemaDescription, bsDescriptio
     propertyDict['type'] = ""
     propertyDict['type_url'] = ""
     propertyDict['bsc_description'] = bsDescription
+    propertyDict['equivalentProperty'] = ''
     propertyDict['marginality'] = marginality
     propertyDict['cardinality'] = cardinality
     propertyDict['controlled_vocab'] = controlledVocabs
