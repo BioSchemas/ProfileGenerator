@@ -57,6 +57,8 @@ def profileHeader(profileName, schemaType, schemaVersion, isBioschemasType, prof
 
     header_properties = {}
     header_properties['layout'] = "profile-display"
+    header_properties['previous_version'] = None
+    header_properties['previous_release'] = None
     header_properties['name'] = profileName
     header_properties['official_type'] = schemaType
     header_properties['schema_version'] = schemaVersion
