@@ -291,12 +291,14 @@ def main(args=None):
     term = args[0]
     if term[0] == term[0].upper():
         k = find_class(term)
-        p = k.includedInDomainOfWithSuper()[0]
-        e = p.rangeIncludesWithSuper()[0]
-        ex = make_example(k,p,e)
-        print(ex)
+        for p in k.includedInDomainOfWithSuper():        
+            for e in p.rangeIncludesWithSuper():
+                ex = make_example(k,p,e)
+                print(ex)
 
     else:
-        k = find_property(term)        
-        ex = make_example(k.domainIncludesWithSuper()[0], k, k.rangeIncludesWithSuper()[0])
-        print(ex)
+        p = find_property(term)
+        for d in p.domainIncludesWithSuper():
+            for r in p.rangeIncludesWithSuper():
+                ex = make_example(d,p,r)
+                print(ex)
