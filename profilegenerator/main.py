@@ -145,7 +145,7 @@ def generate(schematype, profileName=None, groupName=None, description=None):
     profile += '---\n'
     profile += profileFooter()
     writeToFile(profileName, version, status, profile)
-    print(profile)
+    # print(profile)
 
 def writeToFile(profileName, version, status, profile):
     filename = profileName+'-'+version+'-'+status+'.html'
