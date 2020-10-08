@@ -51,6 +51,13 @@ class SchemaType(type):
     def __str__(self):
         return self.label or self.uri
 
+    @classmethod
+    def _flush(cls):
+        # Always set in SchemaType
+        SchemaType._uri2type = {} 
+        SchemaType._dataset = None
+        SchemaType._graph = None      
+
     #abstract
     @property
     def label(self):
@@ -174,3 +181,10 @@ def find_properties(schematype):
     for schematype in s.ancestors:
         type_properties[schematype] = list(schematype.includedInDomainOf())
     return type_properties
+
+def get_version():
+    return SchemaType.version()
+
+def set_version(version):
+    SchemaType._flush()
+    SchemaType.dataset(version)
