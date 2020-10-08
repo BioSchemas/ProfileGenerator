@@ -52,6 +52,8 @@ class Status(IntEnum):
 def _str_presenter(dumper, data):
     if "\n" in data:
         style='|'
+    elif len(data) > 76:
+        style='>'
     elif '"' in data or ' ' in data:
         style='"'
     elif "'" in data:
@@ -106,7 +108,7 @@ def make_example(s_type: SchemaClass, prop: SchemaProperty,
         # Text - we do not know what it looks like; just use property name
         exampleValue = '"example %s"' % str(prop).lower()
     # Note: We'll only inspect the FIRST type in range
-    elif expectedType.uri == SCHEMA.URI:
+    elif expectedType.uri == SCHEMA.URL:
         # Some identifier - possibly related to property name
         exampleValue = '"https://purl.example.org/%s-345"' % str(prop).lower()
     elif expectedType.uri == SCHEMA.Thing:
@@ -116,6 +118,7 @@ def make_example(s_type: SchemaClass, prop: SchemaProperty,
         # Specified type of object
         exampleValue = '{"@id": "https://example.com/%s/345", "@type": "%s"}' % (
             str(expectedType).lower(), str(expectedType))
+    
 
     return '''{ "@context": "https://schema.org/",
   "@id": "%s",
