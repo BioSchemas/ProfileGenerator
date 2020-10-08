@@ -101,32 +101,6 @@ def parse_args(args=None):
     return parser.parse_args(args)
 
 
-def make_example(s_type: SchemaClass, prop: SchemaProperty, 
-                 expectedType: SchemaClass) -> str:
-    example_id = "https://example.com/%s/123" % str(s_type).lower()
-    if not expectedType or expectedType.uri == SCHEMA.Text:
-        # Text - we do not know what it looks like; just use property name
-        exampleValue = '"example %s"' % str(prop).lower()
-    # Note: We'll only inspect the FIRST type in range
-    elif expectedType.uri == SCHEMA.URL:
-        # Some identifier - possibly related to property name
-        exampleValue = '"https://purl.example.org/%s-345"' % str(prop).lower()
-    elif expectedType.uri == SCHEMA.Thing:
-        # Unknown/any type - generic object
-        exampleValue = '{"@id": "https://example.org/345"}'
-    elif SCHEMA.Thing in expectedType.ancestors:
-        # Specified type of object
-        exampleValue = '{"@id": "https://example.com/%s/345", "@type": "%s"}' % (
-            str(expectedType).lower(), str(expectedType))
-    else:
-        # Probably a datatype, fallback to empty string
-        exampleValue = '""'
-
-    return '''{ "@context": "https://schema.org/",
-  "@id": "%s",
-  "@type": "%s",
-  "%s": %s
-}''' % (example_id, s_type, prop, exampleValue)
 
 def generate(schematype, profileName=None, groupName=None, description=None):
     """Generate bioschemas profile for a given schematype"""
@@ -153,9 +127,8 @@ def generate(schematype, profileName=None, groupName=None, description=None):
             marginality = MARGINALITY_UNSPECIFIED
             cardinality = ""
             controlledVocabs = ""
-            example = make_example(typ, prop, 
+            example = schemaorg.make_example(typ, prop, 
                 prop.rangeIncludes and prop.rangeIncludes[0])
-            _logger.info(example)
             # TODO: record which s_type this property belongs to
             mappingProperies.append(profileProperty(propertyName, expectedTypes, schemaDescription, 
                 bsDescription, marginality, cardinality, controlledVocabs, example))
@@ -168,7 +141,6 @@ def generate(schematype, profileName=None, groupName=None, description=None):
     profile = '---\n'
     profileDict = profileHeader(profileName, schematype, False, description, version, status, groupName, False)
     profileDict['mapping'] = mappingProperies
-    _logger.debug(profileDict)
     profile += yaml.dump(profileDict, default_flow_style=False, default_style='"', sort_keys=False)
     profile += '---\n'
     profile += profileFooter()

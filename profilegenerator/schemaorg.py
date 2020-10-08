@@ -18,6 +18,7 @@ __license__ = "MIT" # https://spdx.org/licenses/MIT
 from collections import OrderedDict
 from typing import TypeVar 
 from string import Template
+import sys
 
 import rdflib
 from rdflib import Dataset, URIRef
@@ -42,8 +43,8 @@ SchemaClass = TypeVar("SchemaClass")
 
 class SchemaType(type):
     _uri2type = {} 
-    _dataset = None
-    _graph = None
+    _dataset = rdflib.Dataset()
+    _graph = rdflib.Dataset()
 
     def __repr__(self):
         return "<%s>" % self.uri
@@ -55,8 +56,8 @@ class SchemaType(type):
     def _flush(cls):
         # Always set in SchemaType
         SchemaType._uri2type = {} 
-        SchemaType._dataset = None
-        SchemaType._graph = None      
+        SchemaType._dataset = rdflib.Dataset()
+        SchemaType._graph = rdflib.Graph()      
 
     #abstract
     @property
@@ -65,7 +66,7 @@ class SchemaType(type):
 
     @classmethod
     def dataset(cls, schemaver="latest"):
-        if cls._dataset is not None:
+        if cls._dataset:
             return cls._dataset
         url = SCHEMA_URL.substitute(version=schemaver)
         _logger.info("Loading %s as RDF Dataset" % url)
@@ -74,17 +75,18 @@ class SchemaType(type):
         _logger.info("Loaded %s quads" % len(d))
         if _logger.isEnabledFor(LOG_TRACE):
             _logger.log(LOG_TRACE, d.serialize(format="trig").decode("utf-8"))
-        # NOTE: Store it in the submetaclass, e.g. SchemaClass or SchemaProperty
-        cls._dataset = d
+        # NOTE: Store it in this parent class to support _reset
+        SchemaType._dataset = d
         return cls._dataset
 
     @classmethod
     def graph(cls):
         """Find schema.org named graph"""
-        if cls._graph is not None:
+        if cls._graph:
             return cls._graph
         for (s,p,o,g) in cls.dataset().quads([SCHEMA.Thing,RDF.type,RDFS.Class,None]):
-            cls._graph = cls.dataset().graph(g)
+            # Found the named graph of schema.org declarations
+            SchemaType._graph = cls.dataset().graph(g)
         return cls._graph
 
     @classmethod
@@ -94,6 +96,8 @@ class SchemaType(type):
     @classmethod
     def as_type(cls, uri: URIRef) -> SchemaType:
         if uri not in cls._uri2type:
+            if not cls._exists(uri):
+                raise ValueError("%s is not a known %s" % (uri, cls))
             # create same subclass (SchemaProperty or SchemaClass)
             cls._uri2type[uri] = cls._new(uri)
         return cls._uri2type[uri]
@@ -114,6 +118,11 @@ class SchemaType(type):
     @classmethod
     def _supertypes(cls, uri: URIRef):
         return []
+
+    @classmethod
+    def _exists(cls, uri: URIRef) -> bool:
+        # Accept any non-schema.org terms like rdf:type
+        return not uri.startswith("http://schema.org/")
 
     @property
     def supertypes(self):
@@ -136,34 +145,73 @@ class SchemaType(type):
         return None
 
 class SchemaProperty(SchemaType):
+    @classmethod
+    def _exists(cls, uri: URIRef) -> bool:
+        _logger.debug("Checking property %s" % uri)
+        return super()._exists(uri) or (uri, RDF.type, RDF.Property) in cls.graph()
+
     @classmethod    
     def _supertypes(self, uri: URIRef):
         return map(SchemaProperty.as_type, 
             self.graph().objects(uri, RDFS.subPropertyOf))
     
     @property
-    def domainIncludes(self) -> SchemaClass:
+    def domainIncludes(self):
         return [SchemaClass.as_type(o) for o in
             self.graph().objects(self.uri, SCHEMA.domainIncludes)]
-    
+
+    def domainIncludesWithSuper(self):
+        classes = OrderedDict()
+        for p in self.ancestors: # use mro order
+            for k in p.domainIncludes:
+                classes[k] = k
+        return list(classes.keys())
+
+    def rangeIncludesWithSuper(self):
+        classes = OrderedDict()
+        for p in self.ancestors: # use mro order
+            for k in p.rangeIncludes:
+                classes[k] = k
+        return list(classes.keys())
+
     @property
     def rangeIncludes(self) -> SchemaClass:
         return [SchemaClass.as_type(o) for o in 
             self.graph().objects(self.uri, SCHEMA.rangeIncludes)]
 
-class SchemaClass(SchemaType):        
+class SchemaClass(SchemaType):
+    @classmethod
+    def _exists(cls, uri: URIRef) -> bool:
+        return super()._exists(uri) or (uri, RDF.type, RDFS.Class) in cls.graph()
+
     @classmethod
     def _supertypes(cls, uri: URIRef):
         return map(SchemaClass.as_type, 
             cls.graph().objects(uri, RDFS.subClassOf))
 
-    def includedInDomainOf(self) -> SchemaProperty:
+    @property
+    def includedInDomainOf(self):
         return [SchemaProperty.as_type(s) for s in
             self.graph().subjects(SCHEMA.domainIncludes, self.uri)]
 
+    def includedInDomainOfWithSuper(self):
+        props = OrderedDict()
+        for k in self.ancestors: # use mro order
+            for p in k.includedInDomainOf:
+                props[p] = p
+        return list(props.keys())
+
+    @property
     def includedInRangeOf(self) -> SchemaProperty:
         return [SchemaProperty.as_type(s) for s in 
             self.graph().subjects(SCHEMA.rangeIncludes, self.uri)]
+
+    def includedInRangeOfWithSuper(self):
+        props = OrderedDict()
+        for k in self.ancestors: # use mro order
+            for p in k.includedInRangeOf:
+                props[p] = p
+        return list(props.keys())
 
 def find_class(schematype):
     if not isinstance(schematype, Identifier):
@@ -179,7 +227,7 @@ def find_properties(schematype):
     s = find_class(schematype)
     type_properties = OrderedDict()
     for schematype in s.ancestors:
-        type_properties[schematype] = list(schematype.includedInDomainOf())
+        type_properties[schematype] = schematype.includedInDomainOf
     return type_properties
 
 def get_version():
@@ -188,3 +236,69 @@ def get_version():
 def set_version(version):
     SchemaType._flush()
     SchemaType.dataset(version)
+
+
+def make_example(s_type: SchemaClass, prop: SchemaProperty, 
+                 expectedType: SchemaClass) -> str:
+    example_id = "https://example.com/%s/123" % str(s_type).lower()
+    _logger.info("Making example for [a %s] %s [a %s]" % (s_type, prop, expectedType))
+    if not expectedType or issubclass(expectedType, find_class(SCHEMA.Text)):
+        # Text - we do not know what it looks like; just use property name
+        exampleValue = '"example %s"' % str(prop).lower()
+    # Note: We'll only inspect the FIRST type in range
+    elif issubclass(expectedType, find_class(SCHEMA.URL)):
+        # Some identifier - possibly related to property name
+        exampleValue = '"https://purl.example.org/%s-345"' % str(prop).lower()
+    elif issubclass(expectedType, find_class(SCHEMA.Person)):
+        # Specified type of object
+        exampleValue = '{"@id": "https://orcid.org/0000-0002-1825-0097", "@type": "%s"}' % (
+            str(expectedType))            
+    elif issubclass(expectedType, find_class(SCHEMA.Thing)):
+        # Specified type of object
+        exampleValue = '{"@id": "https://example.com/%s/345", "@type": "%s"}' % (
+            str(expectedType).lower(), str(expectedType))            
+    elif expectedType.uri == SCHEMA.Thing:
+        # Unknown/any type - generic object
+        exampleValue = '{"@id": "https://example.org/345"}'
+    elif issubclass(expectedType, find_class(SCHEMA.DateTime)):
+        exampleValue = '"2020-10-08T17:33:08+01:00"'
+    elif issubclass(expectedType, find_class(SCHEMA.Date)):
+        exampleValue = '"2020-10-08"'
+    elif issubclass(expectedType, find_class(SCHEMA.Time)):
+        exampleValue = '"17:33:08"'
+    elif issubclass(expectedType, find_class(SCHEMA.Boolean)):
+        exampleValue = 'false'
+    elif issubclass(expectedType, find_class(SCHEMA.Number)):
+        exampleValue = '123'
+    else:
+        # Probably a datatype, fallback to empty string
+        exampleValue = '""'
+    ex = '''{ "@context": "https://schema.org/",
+  "@id": "%s",
+  "@type": "%s",
+  "%s": %s
+}''' % (example_id, s_type, prop, exampleValue)
+    _logger.debug(ex)
+    return ex
+
+def main(args=None):
+    """Show example for a particular thing"""
+    if not args:
+        args = sys.argv[1:]
+    if not args or "-h" in args or "--help" in args:
+        print("schemaorg-example [TYPE-or-PROPERTY]")
+        return
+    term = args[0]
+    if term[0] == term[0].upper():
+        k = find_class(term)
+        for p in k.includedInDomainOfWithSuper():        
+            for e in p.rangeIncludesWithSuper():
+                ex = make_example(k,p,e)
+                print(ex)
+
+    else:
+        p = find_property(term)
+        for d in p.domainIncludesWithSuper():
+            for r in p.rangeIncludesWithSuper():
+                ex = make_example(d,p,r)
+                print(ex)
